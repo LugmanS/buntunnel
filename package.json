@@ -1,5 +1,5 @@
 {
-  "name": "buntunnel",
+  "name": "buntunnel-server",
   "module": "index.ts",
   "type": "module",
   "scripts": {

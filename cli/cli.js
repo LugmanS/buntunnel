@@ -35,7 +35,7 @@ function tunnelHandler(url) {
   // const clientId = crypto.randomUUID();
   const clientId = "b048405a-3cba-446d-939b-aefd22553197";
 
-  socket.addEventListener("open", (event) => {
+  socket.addEventListener("open", () => {
     socket.send(
       JSON.stringify({ type: "register-client", data: { clientId } })
     );
