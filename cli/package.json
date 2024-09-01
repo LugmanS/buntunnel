@@ -2,6 +2,7 @@
   "name": "buntunnel",
   "type": "module",
   "bin": {
+    "buntunnel": "cli.js",
     "bt": "cli.js"
   },
   "devDependencies": {
@@ -12,6 +13,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "ws": "^8.18.0",
     "yargs": "^17.7.2"
   }
 }

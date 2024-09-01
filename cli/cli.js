@@ -2,35 +2,28 @@
 
 import http from "http";
 import yargs from "yargs";
+import WebSocket from "ws";
 import { hideBin } from "yargs/helpers";
 
 const buntunnelServerUrl = "http://localhost:8080/ws";
-const urlRegex =
-  /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
 
-yargs(hideBin(process.argv))
-  .command(
-    "$0 <url>",
-    "Start a Buntunnel",
-    (yargs) => {
-      yargs.positional("url", {
-        describe: "URL to tunnel",
-        type: "string",
-      });
-    },
-    (argv) => {
-      tunnelHandler(argv.url);
+const argv = yargs(hideBin(process.argv))
+  .option("port", {
+    alias: "p",
+    description: "Port number to tunnel",
+    type: "number",
+  })
+  .check((argv) => {
+    if (!argv.port) {
+      throw new Error("Please provide a port number.");
     }
-  )
-  .parse();
+    if (argv.port && (argv.port < 1 || argv.port > 65535)) {
+      throw new Error("Please provide a valid port number.");
+    }
+    return true;
+  }).argv;
 
-function tunnelHandler(url) {
-  // if (!url || !urlRegex.test(url)) {
-  //   console.error("❌ Invalid URL");
-  //   return;
-  // }
-
-  const destinationUrl = new URL(url);
+function tunnelHandler(port) {
   const socket = new WebSocket(buntunnelServerUrl);
   // const clientId = crypto.randomUUID();
   const clientId = "b048405a-3cba-446d-939b-aefd22553197";
@@ -46,8 +39,8 @@ function tunnelHandler(url) {
     const data = JSON.parse(event.data);
 
     if (data.type === "client-registered") {
-      console.log("✅ Connected to Buntunnel server");
-      console.log(`🔗 Hosted url: https://${clientId}.buntunnel.com`);
+      console.log(`✨ Forwarding requests to: ${port}`);
+      console.log(`🔗 Buntunnel: https://${clientId}.buntunnel.com \n`);
     }
 
     if (data.type === "proxied-request") {
@@ -55,8 +48,8 @@ function tunnelHandler(url) {
       const requestedUrl = new URL(requestData.url);
 
       const options = {
-        hostname: destinationUrl.hostname,
-        port: destinationUrl.port,
+        hostname: "127.0.0.1",
+        port: port,
         path: requestedUrl.pathname,
         method: requestData.method,
         headers: requestData.headers,
@@ -73,6 +66,7 @@ function tunnelHandler(url) {
           socket.send(
             JSON.stringify({
               type: "proxied-request-response",
+              isSuccessful: true,
               data: {
                 requestId,
                 response: {
@@ -83,7 +77,28 @@ function tunnelHandler(url) {
               },
             })
           );
+          console.log(
+            `${response.statusCode}  ${requestData.method} ${requestedUrl.pathname}${requestedUrl.search}`
+          );
         });
+      });
+
+      proxyRequest.on("error", (error) => {
+        if (error.code === "ECONNREFUSED") {
+          console.error(
+            `502  ${requestData.method} ${requestedUrl.pathname}${requestedUrl.search}`
+          );
+          socket.send(
+            JSON.stringify({
+              type: "proxied-request-response",
+              isSuccessful: false,
+              data: { requestId },
+            })
+          );
+          return;
+        }
+
+        console.error(error);
       });
 
       proxyRequest.write(Buffer.from(requestData.body, "base64"));
@@ -101,3 +116,11 @@ function tunnelHandler(url) {
     console.log("Disconnected from Buntunnel server");
   });
 }
+
+function main() {
+  if (argv.port) {
+    tunnelHandler(argv.port);
+  }
+}
+
+main();

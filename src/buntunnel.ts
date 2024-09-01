@@ -59,7 +59,17 @@ async function requestHandler(req: Request, server: Server) {
       reject(new Error("Request timed out"));
     }, 20000);
 
-    requests.set(requestId, (requestResponse) => {
+    requests.set(requestId, (isSuccessful, requestResponse) => {
+      if (!isSuccessful) {
+        resolve(
+          new Response(
+            "Traffic was successfully tunneled to the agent, but the agent failed to establish a connection to the upstream web service.",
+            { status: 500 }
+          )
+        );
+        return;
+      }
+
       clearTimeout(requestTimeoutId);
       const body = Buffer.from(requestResponse.body, "base64").toString();
       const response = new Response(body, {
@@ -96,7 +106,7 @@ function socketMessageHandler(
 
     const requestResponseHandler = requests.get(requestId);
     if (!requestResponseHandler) return;
-    requestResponseHandler(data.data.response);
+    requestResponseHandler(data.isSuccessful, data.data.response);
     requests.delete(requestId);
     return;
   }
