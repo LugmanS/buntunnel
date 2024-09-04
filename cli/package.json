@@ -2,10 +2,10 @@
   "name": "buntunnel",
   "version": "0.0.1",
   "description": "Serve applications running on a local port through BunTunnel",
-  "main": "cli.js",
+  "main": "dist/cli.js",
   "type": "module",
   "scripts": {
-    "build": "bun run build.ts"
+    "build": "esbuild src/cli.ts --bundle --platform=node --packages=external --outfile=dist/cli.js --format=esm"
   },
   "bin": {
     "buntunnel": "dist/cli.js",
@@ -13,7 +13,8 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/yargs": "^17.0.33"
+    "@types/yargs": "^17.0.33",
+    "esbuild": "^0.23.1"
   },
   "peerDependencies": {
     "typescript": "^5.5.4"
