@@ -1,15 +1,33 @@
-# buntunnel
+# Buntunnel
 
-To install dependencies:
+Share your local app without deploying
 
-```bash
-bun install
-```
+### Note: This project is still in development and is not ready for production use.
 
-To run:
+## Getting Started
 
 ```bash
-bun run index.ts
+  npx buntunnel --port 3000
 ```
 
-This project was created using `bun init` in bun v1.1.17. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+```bash
+  npx buntunnel --url http://localhost:5173
+```
+
+## CLI
+
+Install the buntunnel package globally and that's it.
+
+### Installation
+
+```bash
+  npm install -g buntunnel
+```
+
+### Arguments
+
+| Argument       | Description                    |
+| -------------- | ------------------------------ |
+| `--port`       | Port number to tunnel          |
+| `--url`        | URL to tunnel                  |
+| `--server-url` | Selfhosted websocket endpoint. |
