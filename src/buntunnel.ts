@@ -112,12 +112,6 @@ function socketMessageHandler(
   if (typeof message !== "string") return;
   const data = JSON.parse(message);
 
-  if (data.type === "register-client") {
-    clients.set(data.data.clientId, ws);
-    ws.send(JSON.stringify({ type: "client-registered", data: null }));
-    return;
-  }
-
   if (data.type === "proxied-request-response") {
     const requestId = data.data.requestId;
     if (!requests.has(requestId)) return;
@@ -143,6 +137,7 @@ Bun.serve<WebsocketData>({
       console.log(
         `INFO::WEBSOCKET-HANDLER:ClinentId:${ws.data.clientId} connected`
       );
+      clients.set(ws.data.clientId, ws);
       ws.send(
         JSON.stringify({
           type: "client-registered",
