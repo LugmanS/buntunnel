@@ -8,4 +8,4 @@ export function getSubdomain(url: string) {
   return null;
 }
 
-export const tunnelClientHostnames = ["localhost", "server.buntunnel.site"];
+export const tunnelClientHostnames = ["localhost", "app.buntunnel.site"];
