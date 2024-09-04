@@ -1,3 +1,7 @@
+export type WebsocketData = {
+  clientId: string;
+};
+
 export type Requests = Map<
   string,
   (isSuccessful: boolean, response: ProxiedRequestResponse) => void

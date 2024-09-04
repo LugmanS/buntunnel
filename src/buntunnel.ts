@@ -1,6 +1,7 @@
 import type { Server, ServerWebSocket } from "bun";
-import type { Requests } from "./types";
+import type { Requests, WebsocketData } from "./types";
 import { getSubdomain, tunnelClientHostnames } from "./util";
+import { nanoid } from "nanoid";
 
 const port = 8080 || process.env.PORT;
 
@@ -12,30 +13,39 @@ const requests: Requests = new Map();
 async function requestHandler(req: Request, server: Server) {
   const { url: reqUrl } = req;
   const url = new URL(reqUrl);
-  // Handle request from BunTunnel client
+  // Socket connection from buntunnel client
   if (tunnelClientHostnames.includes(url.hostname)) {
-    if (url.pathname === "/ws") {
-      if (server.upgrade(req)) {
-        return;
-      }
-      return new Response("Upgrade failed", { status: 500 });
-    } else {
+    if (url.pathname !== "/ws")
       return new Response("Not found", { status: 404 });
-    }
-  }
-  // Handle tunnel requests
-  const clientSlug = getSubdomain(reqUrl);
-  if (!clientSlug || !clients.has(clientSlug)) {
-    return new Response("Not found", { status: 404 });
-  }
-  const client = clients.get(clientSlug);
-  if (!client) {
-    return new Response("Not found", { status: 404 });
+    const upgrade = server.upgrade(req, {
+      data: {
+        clientId: nanoid(),
+      },
+    });
+    if (upgrade) return;
+    console.error("ERROR::SOCKET-HANDLER:Upgrade failed for url:", reqUrl);
+    return new Response("Upgrade failed", { status: 500 });
   }
 
-  console.log(`Request for client: ${clientSlug} to route to ${reqUrl}`);
+  const clientId = getSubdomain(reqUrl);
+  if (!clientId || !clients.has(clientId)) {
+    return new Response("Not found", { status: 404 });
+  }
+  const client = clients.get(clientId);
+  if (!client) {
+    console.error(
+      "NOTICE::REQUEST-HANDLER:Client not found for clientId:",
+      clientId
+    );
+    return new Response("Not found", { status: 404 });
+  }
 
   const requestId = crypto.randomUUID();
+  console.log(
+    `INFO::REQUEST-HANDLER:Procesing for client:${clientId}, url:${url.pathname.concat(
+      url.search
+    )} with requestId:${requestId}`
+  );
   const bodyBuffer = await req.arrayBuffer();
 
   client.send(
@@ -55,6 +65,9 @@ async function requestHandler(req: Request, server: Server) {
 
   const responsePromise = new Promise<Response>((resolve, reject) => {
     const requestTimeoutId = setTimeout(() => {
+      console.log(
+        `ERROR::REQUEST-HANDLER:No response from client:${clientId} for requestId:${requestId}`
+      );
       requests.delete(requestId);
       reject(new Error("Request timed out"));
     }, 20000);
@@ -77,6 +90,11 @@ async function requestHandler(req: Request, server: Server) {
         headers: requestResponse.headers,
       });
       resolve(response);
+      console.log(
+        `INFO::REQUEST-HANDLER:Successfully processed for client:${clientId}, url:${url.pathname.concat(
+          url.search
+        )} with requestId:${requestId}`
+      );
     });
   });
 
@@ -112,7 +130,7 @@ function socketMessageHandler(
   }
 }
 
-Bun.serve({
+Bun.serve<WebsocketData>({
   port,
   async fetch(req, server) {
     return await requestHandler(req, server);
@@ -122,8 +140,20 @@ Bun.serve({
       socketMessageHandler(ws, message);
     },
     open(ws) {
-      // ws.send(JSON.stringify({ type: "connected", data: null }));
+      console.log(
+        `INFO::WEBSOCKET-HANDLER:ClinentId:${ws.data.clientId} connected`
+      );
+      ws.send(
+        JSON.stringify({
+          type: "client-registered",
+          data: { clientId: ws.data.clientId },
+        })
+      );
     },
-    close(ws, code, message) {},
+    close(ws, code, message) {
+      console.log(
+        `INFO::WEBSOCKET-HANDLER:ClinentId:${ws.data.clientId} disconnected`
+      );
+    },
   },
 });

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 import http from "http";
-import yargs from "yargs";
 import WebSocket from "ws";
+import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-const buntunnelServerUrl = "https://server.buntunnel.site/ws";
+const defaultServerUrl = "wss://server.buntunnel.site/ws";
 
 const argv = yargs(hideBin(process.argv))
   .option("port", {
@@ -24,14 +24,12 @@ const argv = yargs(hideBin(process.argv))
   }).argv;
 
 function tunnelHandler(port) {
-  const socket = new WebSocket(buntunnelServerUrl);
-  // const clientId = crypto.randomUUID();
-  const clientId = "b048405a-3cba-446d-939b-aefd22553197";
+  const socket = new WebSocket(defaultServerUrl);
+
+  let clientId = null;
 
   socket.addEventListener("open", () => {
-    socket.send(
-      JSON.stringify({ type: "register-client", data: { clientId } })
-    );
+    console.log(`⌛️ Setting up your tunnel...`);
   });
 
   socket.addEventListener("message", async (event) => {
@@ -39,8 +37,10 @@ function tunnelHandler(port) {
     const data = JSON.parse(event.data);
 
     if (data.type === "client-registered") {
-      console.log(`✨ Forwarding requests to: ${port}`);
-      console.log(`🔗 Buntunnel: https://${clientId}.buntunnel.com \n`);
+      clientId = data.data.clientId;
+      if (!clientId) return console.log(`❌ Unable to establish tunnel`);
+      console.log(`✨ Tunnel established to port: ${port}`);
+      console.log(`🔗 Buntunnel: https://${clientId}.buntunnel.site \n`);
     }
 
     if (data.type === "proxied-request") {
@@ -107,6 +107,7 @@ function tunnelHandler(port) {
   });
 
   socket.addEventListener("error", (event) => {
+    console.log(event);
     console.error(
       "Unable to connect to Buntunnel server. Please try after some time."
     );
