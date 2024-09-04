@@ -29,14 +29,14 @@ async function requestHandler(req: Request, server: Server) {
 
   const clientId = getSubdomain(reqUrl);
   if (!clientId || !clients.has(clientId)) {
-    return new Response("Not found", { status: 404 });
-  }
-  const client = clients.get(clientId);
-  if (!client) {
     console.error(
       "NOTICE::REQUEST-HANDLER:Client not found for clientId:",
       clientId
     );
+    return new Response("Not found", { status: 404 });
+  }
+  const client = clients.get(clientId);
+  if (!client) {
     return new Response("Not found", { status: 404 });
   }
 
