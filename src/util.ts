@@ -1,3 +1,5 @@
+import { customAlphabet } from "nanoid";
+
 export function getSubdomain(url: string) {
   const parsedUrl = new URL(url);
   const hostname = parsedUrl.hostname;
@@ -9,3 +11,12 @@ export function getSubdomain(url: string) {
 }
 
 export const tunnelClientHostnames = ["localhost", "app.buntunnel.site"];
+
+export function generateClientId(clients: string[]) {
+  const nanoid = customAlphabet("0123456789abcdefghijklmnopqrstuvwxyz", 20);
+  let clientId = nanoid();
+  while (clients.includes(clientId)) {
+    clientId = nanoid();
+  }
+  return clientId;
+}

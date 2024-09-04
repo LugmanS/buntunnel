@@ -1,7 +1,6 @@
 import type { Server, ServerWebSocket } from "bun";
 import type { Requests, WebsocketData } from "./types";
-import { getSubdomain, tunnelClientHostnames } from "./util";
-import { nanoid } from "nanoid";
+import { generateClientId, getSubdomain, tunnelClientHostnames } from "./util";
 
 const port = 8080 || process.env.PORT;
 
@@ -19,7 +18,7 @@ async function requestHandler(req: Request, server: Server) {
       return new Response("Not found", { status: 404 });
     const upgrade = server.upgrade(req, {
       data: {
-        clientId: nanoid(),
+        clientId: generateClientId(Array.from(clients.keys())),
       },
     });
     if (upgrade) return;
