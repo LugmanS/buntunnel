@@ -1,6 +1,6 @@
 {
   "name": "buntunnel",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Serve applications running on a local port through BunTunnel",
   "main": "dist/cli.js",
   "type": "module",

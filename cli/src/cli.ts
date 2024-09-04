@@ -131,6 +131,7 @@ function tunnelHandler(
   });
 
   socket.addEventListener("close", (event) => {
+    console.log(event);
     console.log("Disconnected from Buntunnel server");
   });
 }
