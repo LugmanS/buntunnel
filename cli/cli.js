@@ -5,7 +5,7 @@ import yargs from "yargs";
 import WebSocket from "ws";
 import { hideBin } from "yargs/helpers";
 
-const buntunnelServerUrl = "http://localhost:8080/ws";
+const buntunnelServerUrl = "https://server.buntunnel.site/ws";
 
 const argv = yargs(hideBin(process.argv))
   .option("port", {
