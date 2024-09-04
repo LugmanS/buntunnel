@@ -26,8 +26,8 @@ Install the buntunnel package globally and that's it.
 
 ### Arguments
 
-| Argument       | Description                    |
-| -------------- | ------------------------------ |
-| `--port`       | Port number to tunnel          |
-| `--url`        | URL to tunnel                  |
-| `--server-url` | Selfhosted websocket endpoint. |
+| Argument       | Alias | Description                    |
+| -------------- | ----- | ------------------------------ |
+| `--port`       | `-p`  | Port number to tunnel          |
+| `--url`        | `-u`  | URL to tunnel                  |
+| `--server-url` | -     | Selfhosted websocket endpoint. |
