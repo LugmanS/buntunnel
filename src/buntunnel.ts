@@ -73,6 +73,7 @@ async function requestHandler(req: Request, server: Server) {
 
     requests.set(requestId, (isSuccessful, requestResponse) => {
       if (!isSuccessful) {
+        clearTimeout(requestTimeoutId);
         resolve(
           new Response(
             "Traffic was successfully tunneled to the agent, but the agent failed to establish a connection to the upstream web service.",
