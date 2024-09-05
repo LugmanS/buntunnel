@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "****************** Deploying buntunnel ******************"
+echo "****************** Starting buntunnel deployment ******************"
 
 git pull origin
 
@@ -10,6 +10,6 @@ sudo nginx -s reload
 
 bun install
 
-bun run start
+echo "****************** Starting buntunnel server ******************"
 
-echo "****************** Deployed buntunnel ******************"
+bun run start
