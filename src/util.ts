@@ -23,7 +23,7 @@ export function generateClientId(clients: string[]) {
 }
 
 export function compressResponse(
-  data: string,
+  data: Buffer,
   acceptEncoding: string
 ): Promise<{ data: Buffer | string; encoding: string }> {
   return new Promise((resolve, reject) => {
