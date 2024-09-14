@@ -1,6 +1,11 @@
 import type { Server, ServerWebSocket } from "bun";
 import type { Requests, WebsocketData } from "./types";
-import { generateClientId, getSubdomain, tunnelClientHostnames } from "./util";
+import {
+  compressResponse,
+  generateClientId,
+  getSubdomain,
+  tunnelClientHostnames,
+} from "./util";
 
 const port = 8080 || process.env.PORT;
 
@@ -71,7 +76,7 @@ async function requestHandler(req: Request, server: Server) {
       reject(new Error("Request timed out"));
     }, 20000);
 
-    requests.set(requestId, (isSuccessful, requestResponse) => {
+    requests.set(requestId, async (isSuccessful, requestResponse) => {
       if (!isSuccessful) {
         clearTimeout(requestTimeoutId);
         resolve(
@@ -85,7 +90,22 @@ async function requestHandler(req: Request, server: Server) {
 
       clearTimeout(requestTimeoutId);
       const body = Buffer.from(requestResponse.body, "base64").toString();
-      const response = new Response(body, {
+
+      const acceptedEncoding = req.headers.get("accept-encoding");
+      if (!acceptedEncoding) {
+        const response = new Response(body, {
+          status: requestResponse.status,
+          headers: requestResponse.headers,
+        });
+        resolve(response);
+      }
+
+      const decompressedBody = await compressResponse(
+        body,
+        acceptedEncoding || ""
+      );
+
+      const response = new Response(decompressedBody.data, {
         status: requestResponse.status,
         headers: requestResponse.headers,
       });

@@ -1,4 +1,5 @@
 import { customAlphabet } from "nanoid";
+import zlib from "zlib";
 
 export function getSubdomain(url: string) {
   const parsedUrl = new URL(url);
@@ -19,4 +20,34 @@ export function generateClientId(clients: string[]) {
     clientId = nanoid();
   }
   return clientId;
+}
+
+export function compressResponse(
+  data: string,
+  acceptEncoding: string
+): Promise<{ data: Buffer | string; encoding: string }> {
+  return new Promise((resolve, reject) => {
+    const acceptedEncodings = acceptEncoding
+      .split(",")
+      .map((item) => item.trim());
+
+    if (acceptedEncodings.includes("br")) {
+      zlib.brotliCompress(data, (err, result) => {
+        if (err) reject(err);
+        else resolve({ data: result, encoding: "br" });
+      });
+    } else if (acceptedEncodings.includes("gzip")) {
+      zlib.gzip(data, (err, result) => {
+        if (err) reject(err);
+        else resolve({ data: result, encoding: "gzip" });
+      });
+    } else if (acceptedEncodings.includes("deflate")) {
+      zlib.deflate(data, (err, result) => {
+        if (err) reject(err);
+        else resolve({ data: result, encoding: "deflate" });
+      });
+    } else {
+      resolve({ data, encoding: "identity" });
+    }
+  });
 }
