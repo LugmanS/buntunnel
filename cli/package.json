@@ -1,11 +1,12 @@
 {
   "name": "buntunnel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Serve applications running on a local port through BunTunnel",
   "main": "dist/cli.js",
   "type": "module",
   "scripts": {
-    "build": "esbuild src/cli.ts --bundle --platform=node --packages=external --outfile=dist/cli.js --format=esm"
+    "build": "esbuild src/cli.ts --bundle --platform=node --packages=external --outfile=dist/cli.js --format=esm",
+    "publish": "bun run build && npm publish"
   },
   "bin": {
     "buntunnel": "dist/cli.js",
