@@ -68,22 +68,23 @@ function tunnelHandler(
     if (data.type === "proxied-request") {
       const { requestId, request: requestData } = data.data;
       const requestedUrl = new URL(requestData.url);
+      delete requestData.headers["accept-encoding"];
 
       const options: http.RequestOptions = {
         ...baseConnectionConfig,
-        path: requestedUrl.pathname,
+        path: requestedUrl.pathname + requestedUrl.search,
         method: requestData.method,
         headers: requestData.headers,
       };
 
       const proxyRequest = http.request(options, (response) => {
-        let responseBody = "";
+        let resChunks: Buffer[] = [];
         response.on("data", (chunk) => {
-          responseBody += chunk;
+          resChunks.push(chunk);
         });
 
         response.on("end", () => {
-          const body = Buffer.from(responseBody).toString("base64");
+          const body = Buffer.concat(resChunks).toString("base64");
           socket.send(
             JSON.stringify({
               type: "proxied-request-response",
