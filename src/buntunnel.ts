@@ -84,7 +84,7 @@ async function requestHandler(req: Request, server: Server) {
       }
 
       clearTimeout(requestTimeoutId);
-      const body = Buffer.from(requestResponse.body, "base64").toString();
+      const body = Buffer.from(requestResponse.body, "base64");
       const response = new Response(body, {
         status: requestResponse.status,
         headers: requestResponse.headers,
